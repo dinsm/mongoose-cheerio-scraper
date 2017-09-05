@@ -1,0 +1,10 @@
+* `heroku config | grep MONGODB_URI`
+
+* Notice the value that appears after `MONGODB_URI =>`. This is your URI string. Copy it to a document for safekeeping.
+
+MONGODB_URI: mongodb://heroku_5r5gzm39:lfiilgmhj976dq6ek0a7qtl1q5@ds121674.mlab.com:21674/heroku_5r5gzm39
+
+
+
+heroku config:get MONGODB_URI
+mongodb://heroku_5r5gzm39:lfiilgmhj976dq6ek0a7qtl1q5@ds121674.mlab.com:21674/heroku_5r5gzm39
