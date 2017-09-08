@@ -3,22 +3,33 @@ var express = require("express");
 var exphbs = require("express-handlebars");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
-
 var logger = require("morgan"); // for debugging
+
+// Scraping tools
 var request = require("request"); // for web-scraping
 var cheerio = require("cheerio"); // for web-scraping
 
+// Requiring the Comment and Article models
+var Comment = require("./models/Comment.js");
+var Article = require("./models/Article.js");
 
-// Initialize Express for debugging & body parsing
+// Set mongoose to leverage built in JavaScript ES6 Promises
+mongoose.Promise = Promise;
+
+// Initialize Express
 var app = express();
-app.use(logger("dev"));
 
+// Use morgan and body parser with our app
+app.use(logger("dev"));
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 
 // Serve Static Content
 app.use(express.static(process.cwd() + "/public"));
+// OR
+// Make public a static dir
+//app.use(express.static("public"));
 
 // Express-Handlebars
 app.engine("handlebars", exphbs({defaultLayout: "main"}));
@@ -30,10 +41,11 @@ app.set("view engine", "handlebars");
 // Connect to localhost if not a production environment
 if(process.env.NODE_ENV === "production"){
     mongoose.connect("mongodb://heroku_5r5gzm39:lfiilgmhj976dq6ek0a7qtl1q5@ds121674.mlab.com:21674/heroku_5r5gzm39");
-}
-else{
+
+}else{
     mongoose.connect("mongodb://localhost/news-scraper");
 }
+
 var db = mongoose.connection;
 
 // Show any Mongoose errors
@@ -46,9 +58,7 @@ db.once("open", function() {
     console.log("Mongoose connection successful.");
 });
 
-// Import the Comment and Article models
-var Comment = require("./models/Comment.js");
-var Article = require("./models/Article.js");
+
 // ---------------------------------------------------------------------------------------------------------------
 
 // DROP DATABASE (FOR MY PERSONAL REFERENCE ONLY - YOU CAN IGNORE)

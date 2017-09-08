@@ -1,31 +1,32 @@
 // Node Dependencies
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-var path = require('path');
-var request = require('request'); // for web-scraping
-var cheerio = require('cheerio'); // for web-scraping
+var path = require("path");
+var request = require("request"); // for web-scraping
+var cheerio = require("cheerio"); // for web-scraping
 
 // Import the Comment and Article models
-var Comment = require('../models/Comment.js');
-var Article = require('../models/Article.js');
+var Comment = require("../models/Comment.js");
+var Article = require("../models/Article.js");
+
 
 // Index Page Render (first visit to the site)
-router.get('/', function (req, res){
+router.get("/", function (req, res){
 
     // Scrape data
-    res.redirect('/scrape');
+    res.redirect("/scrape");
 
 });
 
 
 // Articles Page Render
-router.get('/articles', function (req, res){
+router.get("/articles", function (req, res){
 
     // Query MongoDB for all article entries (sort newest to top, assuming Ids increment)
     Article.find().sort({_id: -1})
 
     // But also populate all of the comments associated with the articles.
-        .populate('comments')
+        .populate("comments")
 
         // Then, send them to the handlebars template to be rendered
         .exec(function(err, doc){
@@ -36,7 +37,7 @@ router.get('/articles', function (req, res){
             // or send the doc to the browser as a json object
             else {
                 var hbsObject = {articles: doc};
-                res.render('index', hbsObject);
+                res.render("index", hbsObject);
                 // res.json(hbsObject)
             }
         });
@@ -45,10 +46,10 @@ router.get('/articles', function (req, res){
 
 
 // Web Scrape Route
-router.get('/scrape', function(req, res) {
+router.get("/scrape", function(req, res) {
 
     // First, grab the body of the html with request
-    request('http://www.theonion.com/', function(error, response, html) {
+    request("http://www.fmylife.com/", function(error, response, html) {
 
         // Then, load html into cheerio and save it to $ for a shorthand selector
         var $ = cheerio.load(html);
@@ -57,19 +58,19 @@ router.get('/scrape', function(req, res) {
         var titlesArray = [];
 
         // Now, grab every everything with a class of "inner" with each "article" tag
-        $('article .inner').each(function(i, element) {
+        $("article .inner").each(function(i, element) {
 
             // Create an empty result object
             var result = {};
 
             // Collect the Article Title (contained in the "h2" of the "header" of "this")
-            result.title = $(this).children('header').children('h2').text().trim() + ""; //convert to string for error handling later
+            result.title = $(this).children("header").children("h2").text().trim() + ""; //convert to string for error handling later
 
             // Collect the Article Link (contained within the "a" tag of the "h2" in the "header" of "this")
-            result.link = 'http://www.theonion.com' + $(this).children('header').children('h2').children('a').attr('href').trim();
+            result.link = "http://www.fmylife.com/" + $(this).children("header").children("h2").children("a").attr("href").trim();
 
             // Collect the Article Summary (contained in the next "div" inside of "this")
-            result.summary = $(this).children('div').text().trim() + ""; //convert to string for error handling later
+            result.summary = $(this).children("div").text().trim() + ""; //convert to string for error handling later
 
 
             // Error handling to ensure there are no empty scrapes
@@ -106,20 +107,20 @@ router.get('/scrape', function(req, res) {
                         }
                         // Log that scrape is working, just the content was already in the Database
                         else{
-                            console.log('Redundant Database Content. Not saved to DB.')
+                            console.log("Redundant Database Content. Not saved to DB.")
                         }
 
                     });
                 }
                 // Log that scrape is working, just the content was missing parts
                 else{
-                    console.log('Redundant Onion Content. Not Saved to DB.')
+                    console.log("Redundant FML Content. Not Saved to DB.")
                 }
 
             }
             // Log that scrape is working, just the content was missing parts
             else{
-                console.log('Empty Content. Not Saved to DB.')
+                console.log("Empty Content. Not Saved to DB.")
             }
 
         });
@@ -133,7 +134,7 @@ router.get('/scrape', function(req, res) {
 
 
 // Add a Comment Route - **API**
-router.post('/add/comment/:id', function (req, res){
+router.post("/add/comment/:id", function (req, res){
 
     // Collect article id
     var articleId = req.params.id;
@@ -162,7 +163,7 @@ router.post('/add/comment/:id', function (req, res){
         // Or, relate the comment to the article
         else {
             // Push the new Comment to the list of comments in the article
-            Article.findOneAndUpdate({'_id': articleId}, {$push: {'comments':doc._id}}, {new: true})
+            Article.findOneAndUpdate({"_id": articleId}, {$push: {"comments":doc._id}}, {new: true})
             // execute the above query
                 .exec(function(err, doc){
                     // log any errors
@@ -182,7 +183,7 @@ router.post('/add/comment/:id', function (req, res){
 
 
 // Delete a Comment Route
-router.post('/remove/comment/:id', function (req, res){
+router.post("/remove/comment/:id", function (req, res){
 
     // Collect comment id
     var commentId = req.params.id;
