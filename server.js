@@ -1,55 +1,68 @@
-// dependencies
-var express = require('express');
-var bodyParser = require('body-parser');
-var logger = require('morgan');
-var mongoose = require('mongoose');
-var methodOverride = require('method-override');
+// Node Dependencies
+var express = require("express");
+var exphbs = require("express-handlebars");
+var bodyParser = require("body-parser");
+var mongoose = require("mongoose");
+
+var logger = require("morgan"); // for debugging
+var request = require("request"); // for web-scraping
+var cheerio = require("cheerio"); // for web-scraping
 
 
-
-// start the express app
+// Initialize Express for debugging & body parsing
 var app = express();
+app.use(logger("dev"));
 
-// use logger in dev mode
-app.use(logger('dev'));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 
-// use method override
-app.use(methodOverride('X-HTTP-Method-Override'));
+// Serve Static Content
+app.use(express.static(process.cwd() + "/public"));
 
-// set up body parser
-app.use(bodyParser.urlencoded({extended: true }));
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.text());
-app.use(bodyParser.json({type:'application/vnd.api+json'}));
-
-
-// make static folder
-var staticContentFolder = __dirname + '/public';
-app.use(express.static(staticContentFolder));
-
-// our app routes go here
-require('./routes/html.js')(app);
-require('./routes/api.js')(app);
+// Express-Handlebars
+app.engine("handlebars", exphbs({defaultLayout: "main"}));
+app.set("view engine", "handlebars");
 
 
-// configure our db with mongoose
-mongoose.connect('mongodb://heroku_cxkb5sd5:hi0639lfao57ok35djfampfgt2@ds021663.mlab.com:21663/heroku_cxkb5sd5');
+// Database Configuration with Mongoose
+// ---------------------------------------------------------------------------------------------------------------
+// Connect to localhost if not a production environment
+if(process.env.NODE_ENV === "production"){
+    mongoose.connect("mongodb://heroku_5r5gzm39:lfiilgmhj976dq6ek0a7qtl1q5@ds121674.mlab.com:21674/heroku_5r5gzm39");
+}
+else{
+    mongoose.connect("mongodb://localhost/news-scraper");
+}
 var db = mongoose.connection;
 
-// mongoose connection: if err, tell us what's up
-db.on('error', function(err){
-    console.log('Mongoose Error: ', err);
-});
-// once the con's open, tell us
-db.once('open', function(){
-    console.log('Mongoose connection successful!');
+// Show any Mongoose errors
+db.on("error", function(err) {
+    console.log("Mongoose Error: ", err);
 });
 
+// Once logged in to the db through mongoose, log a success message
+db.once("open", function() {
+    console.log("Mongoose connection successful.");
+});
 
-// define port
+// Import the Comment and Article models
+var Comment = require("./models/Comment.js");
+var Article = require("./models/Article.js");
+// ---------------------------------------------------------------------------------------------------------------
+
+// DROP DATABASE (FOR MY PERSONAL REFERENCE ONLY - YOU CAN IGNORE)
+// Article.remove({}, function(err) {
+//    console.log("collection removed")
+// });
+
+// Import Routes/Controller
+var router = require("./controllers/controller.js");
+app.use("/", router);
+
+
+// Launch App
 var PORT = process.env.PORT || 3000;
-
-// listen
-app.listen(PORT, function(){
-    console.log('app listening on port 3000')
+app.listen(port, function(){
+    console.log("App Server Running on port: " + PORT);
 });
