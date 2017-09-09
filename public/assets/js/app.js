@@ -6,7 +6,7 @@ $(document).ready(function(){
 
     // NOTE THAT THE JQUERY BELOW ISNT ENTIRELY NEEDED SINCE I HAVE FORM ACTIONS
     // BUT I JUST WANTED TO USE THE "LOCATION.RELOAD"
-    // THIS TO KEEP THE SCROLL AT THE CORRECT POSTION AFTER MAKING A POST REQ
+    // THIS TO KEEP THE SCROLL AT THE CORRECT POSITION AFTER MAKING A POST REQ
 
 
     // Click Listener for FORM SUBMISSION to ADD a comment
@@ -30,7 +30,7 @@ $(document).ready(function(){
         $.ajax({
             url: baseURL + '/add/comment/' + articleId,
             type: 'POST',
-            data: frm.serialize(),
+            data: frm.serialize()
         })
             .done(function() {
                 // Refresh the Window after the call is done

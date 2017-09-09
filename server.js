@@ -73,6 +73,6 @@ app.use("/", router);
 
 // Launch App
 var PORT = process.env.PORT || 3000;
-app.listen(port, function(){
+app.listen(PORT, function(){
     console.log("App Server Running on port: " + PORT);
 });
