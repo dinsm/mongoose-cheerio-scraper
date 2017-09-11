@@ -3,11 +3,12 @@ var express = require("express");
 var exphbs = require("express-handlebars");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
-var logger = require("morgan"); // for debugging
+var logger = require("morgan");
+var methodOverride = require("method-override");
 
 // Scraping tools
-var request = require("request"); // for web-scraping
-var cheerio = require("cheerio"); // for web-scraping
+var request = require("request");
+var cheerio = require("cheerio");
 
 // Requiring the Comment and Article models
 var Comment = require("./models/Comment.js");
@@ -26,10 +27,11 @@ app.use(bodyParser.urlencoded({
 }));
 
 // Serve Static Content
-app.use(express.static(process.cwd() + "/public"));
+//app.use(express.static(process.cwd() + "/public"));
 // OR
 // Make public a static dir
-//app.use(express.static("public"));
+app.use(express.static("public"));
+
 
 // Express-Handlebars
 app.engine("handlebars", exphbs({defaultLayout: "main"}));
@@ -45,6 +47,7 @@ if(process.env.NODE_ENV === "production"){
 }else{
     mongoose.connect("mongodb://localhost/news-scraper");
 }
+//mongoose.connect(process.env.MONGODB_URI);
 
 var db = mongoose.connection;
 
@@ -61,7 +64,7 @@ db.once("open", function() {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-// DROP DATABASE (FOR MY PERSONAL REFERENCE ONLY - YOU CAN IGNORE)
+// DROP DATABASE
 // Article.remove({}, function(err) {
 //    console.log("collection removed")
 // });
@@ -73,6 +76,7 @@ app.use("/", router);
 
 // Launch App
 var PORT = process.env.PORT || 3000;
+
 app.listen(PORT, function(){
     console.log("App Server Running on port: " + PORT);
 });

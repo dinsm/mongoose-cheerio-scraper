@@ -2,8 +2,11 @@
 var express = require("express");
 var router = express.Router();
 var path = require("path");
-var request = require("request"); // for web-scraping
-var cheerio = require("cheerio"); // for web-scraping
+var mongoose = require("mongoose");
+
+//The Scrapping tools
+var request = require("request");
+var cheerio = require("cheerio");
 
 // Import the Comment and Article models
 var Comment = require("../models/Comment.js");
@@ -11,22 +14,23 @@ var Article = require("../models/Article.js");
 
 
 // Index Page Render (first visit to the site)
-router.get("/", function (req, res){
-
-    // Scrape data
-    res.redirect("/scrape");
-
-});
+// router.get("/", function (req, res){
+//
+//     // Scrape data
+//     res.redirect("/scrape");
+//
+//});
 
 
 // Articles Page Render
+// Get the articles we scraped from the mongoDB
 router.get("/articles", function (req, res){
 
     // Query MongoDB for all article entries (sort newest to top, assuming Ids increment)
     Article.find().sort({_id: -1})
 
     // But also populate all of the comments associated with the articles.
-        .populate("comments")
+        .populate("comment")
 
         // Then, send them to the handlebars template to be rendered
         .exec(function(err, doc){
@@ -45,6 +49,27 @@ router.get("/articles", function (req, res){
 });
 
 
+// Grab an article by it's ObjectId
+// app.get("/articles/:id", function(req, res) {
+//     // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
+//     Article.findOne({ "_id": req.params.id })
+//     // ..and populate all of the notes associated with it
+//         .populate("note")
+//         // now, execute our query
+//         .exec(function(error, doc) {
+//             // Log any errors
+//             if (error) {
+//                 console.log(error);
+//             }
+//             // Otherwise, send the doc to the browser as a json object
+//             else {
+//                 res.json(doc);
+//             }
+//         });
+// });
+
+
+
 // Web Scrape Route
 router.get("/scrape", function(req, res) {
 
@@ -57,14 +82,14 @@ router.get("/scrape", function(req, res) {
         // This is an error handler for the Onion website only, they have duplicate articles for some reason...
         var titlesArray = [];
 
-        // Now, grab every everything with a class of "inner" with each "article" tag
-        $("article .inner").each(function(i, element) {
+        // Now, grab every everything with a class of "h2" with each "article" tag
+        $("article h2").each(function(i, element) {
 
             // Create an empty result object
             var result = {};
 
             // Collect the Article Title (contained in the "h2" of the "header" of "this")
-            result.title = $(this).children("header").children("h2").text().trim() + ""; //convert to string for error handling later
+            result.title = $(this).children("a").children("h2").text().trim() + ""; //convert to string for error handling later
 
             // Collect the Article Link (contained within the "a" tag of the "h2" in the "header" of "this")
             result.link = "http://www.fmylife.com/" + $(this).children("header").children("h2").children("a").attr("href").trim();
@@ -76,7 +101,7 @@ router.get("/scrape", function(req, res) {
             // Error handling to ensure there are no empty scrapes
             if(result.title !== "" &&  result.summary !== ""){
 
-                // BUT we must also check within each scrape since the Onion has duplicate articles...
+                // BUT we must also check within each scrape since the FML has duplicate articles...
                 // Due to async, moongoose will not save the articles fast enough for the duplicates within a scrape to be caught
                 if(titlesArray.indexOf(result.title) === -1){
 

@@ -13,7 +13,13 @@ var ArticleSchema = new Schema({
     // Title of Article
     title: {
         type: String,
-        required: true
+        required: true,
+        unique: true
+    },
+
+    // Image of Article
+    image: {
+        type: String
     },
 
     // Link to Article
@@ -35,14 +41,17 @@ var ArticleSchema = new Schema({
     },
 
     // Create a relation with the Comment model
+    //The note key is an array so multiple notes can be added
     comments: [{
         type: Schema.Types.ObjectId,
+
+        // The ObjectIds will refer to the ids in the Note model
         ref: "Comment"
     }]
 
 });
 
-// Create the Article model with Mongoose
+// Create the Article model with Mongoose (ArticleSchema)
 var Article = mongoose.model("Article", ArticleSchema);
 
 // Export the Model
